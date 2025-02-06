@@ -2,7 +2,7 @@ import { detailedLogger } from "../../../logger/logger_instance.js";
 import readSuccessfulImports from "../../../logger/read_successful_imports.js";
 
 import parseCSV from "../../csv/parse.js";
-import selectStatusTypes from "./select_status_types.js";
+// import selectStatusTypes from "./select_status_types.js";
 
 import buildImportSummary from "./build_import_summary.js";
 
@@ -10,7 +10,7 @@ async function formatter({ team, directory }) {
   detailedLogger.importantLoading(`Setting up Pivotal Import...`);
 
   // Prompt user to select status types
-  const selectedStatusTypes = await selectStatusTypes();
+  // const selectedStatusTypes = await selectStatusTypes();
 
   // Parse CSV
   const csvData = await parseCSV(directory);
@@ -24,19 +24,21 @@ async function formatter({ team, directory }) {
     (story) => !successfulImports.has(story.id),
   );
 
-  // Only include stories that match the selected status types in `selectedStatusTypes`
-  const formattedIssuePayload = pivotalStoriesThatHaveNotBeenImported.filter(
-    (story) => selectedStatusTypes.includes(story.state),
-  );
+  const formattedIssuePayload = pivotalStoriesThatHaveNotBeenImported;
+
+  // // Only include stories that match the selected status types in `selectedStatusTypes`
+  // const formattedIssuePayload = pivotalStoriesThatHaveNotBeenImported.filter(
+  //   (story) => selectedStatusTypes.includes(story.state),
+  // );
 
   // TODO: Make this shorter... maybe return a sample object or set to a different logging level
-  detailedLogger.info(
-    `Formatted Issue Payload: ${JSON.stringify(
-      formattedIssuePayload,
-      null,
-      2,
-    )}`,
-  );
+  // detailedLogger.info(
+  //   `Formatted Issue Payload: ${JSON.stringify(
+  //     formattedIssuePayload,
+  //     null,
+  //     2,
+  //   )}`,
+  // );
 
   // Check if there are any stories left to import
   if (formattedIssuePayload.length === 0) {
