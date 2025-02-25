@@ -47,14 +47,6 @@ async function create({
       // Create Issue
       const newIssue = await linearClient.createIssue(issueParams);
 
-      // Write successful import to log
-      await logSuccessfulImport({
-        team,
-        issue,
-        newIssue,
-        importNumber: index + 1,
-      });
-
       // Create Comments
       if (options.shouldImportComments)
         await createComments({ issue, newIssue });
@@ -62,6 +54,14 @@ async function create({
       // Create File Attachments
       if (options.shouldImportFiles)
         await createFileAttachments({ issue, newIssue, directory });
+
+      // Write successful import to log
+      await logSuccessfulImport({
+        team,
+        issue,
+        newIssue,
+        importNumber: index + 1,
+      });
 
       await new Promise((resolve) => setTimeout(resolve, REQUEST_DELAY_MS));
     } catch (error) {
