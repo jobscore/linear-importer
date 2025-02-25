@@ -20,7 +20,7 @@ async function createComment({ issueId, body }) {
       process.exit(1);
     }
   } catch (error) {
-    detailedLogger.error("Error creating comment:", error.message);
+    detailedLogger.error(`Error creating comment: ${response.errors}`);
     process.exit(1);
   }
 }
