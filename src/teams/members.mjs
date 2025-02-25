@@ -4,7 +4,11 @@ import { detailedLogger } from "../../logger/logger_instance.js";
 async function getTeamMembers({ teamId }) {
   try {
     const team = await linearClient.team(teamId); // Pass teamId directly, not as an object
-    const members = await team.members();
+    let members = await team.members();
+
+    while (members.pageInfo.hasNextPage) {
+      members = await members.fetchNext();
+    }
 
     detailedLogger.info(`Team Members: ${JSON.stringify(members, null, 2)}`);
     return { teamMembers: members };
