@@ -6,6 +6,7 @@ import importComments from "./prompts/import_comments.js";
 import updateIssueEstimationType from "./estimates/update_issue_estimation_type.js";
 import importEstimates from "./estimates/import_estimates.js";
 import importPriority from "./prompts/import_priority.js";
+import importReleasesFirst from "./prompts/import_releases_first.js";
 import selectTeam from "./teams/select.mjs";
 import importFiles from "./prompts/import_files.js";
 import proceedWithImport from "./prompts/proceed_with_import.js";
@@ -44,6 +45,7 @@ const shouldImportFiles = await importFiles();
 const shouldImportLabels = await importLabels();
 const shouldImportComments = await importComments();
 const shouldImportPriority = await importPriority();
+const shouldImportReleasesFirst = await importReleasesFirst();
 const shouldImportEstimates = await importEstimates();
 if (shouldImportEstimates) await updateIssueEstimationType({ team });
 
@@ -103,35 +105,50 @@ if (shouldImportLabels) {
   });
 }
 
-//=============================================================================
-// Create Release Issues
-//=============================================================================
-// Create Release Issues first so that we can assign sub-issues
-const releaseIssues = extractedPivotalData.formattedIssuePayload.filter(
-  (issue) => issue.isRelease,
-);
-await createIssues({
-  team,
-  issuesPayload: releaseIssues,
-  options,
-  importSource,
-  directory,
-});
+if (shouldImportReleasesFirst) {
+  //=============================================================================
+  // Create Release Issues
+  //=============================================================================
+  // Create Release Issues first so that we can assign sub-issues
+  const releaseIssues = extractedPivotalData.formattedIssuePayload.filter(
+    (issue) => issue.isRelease,
+  );
+  await createIssues({
+    team,
+    issuesPayload: releaseIssues,
+    options,
+    importSource,
+    directory,
+  });
 
-//=============================================================================
-// Create Issues
-//=============================================================================
-// Create non-release issues after release issues have been created, so that
-// a parentId can be assigned if necessary
-const nonReleaseIssues = extractedPivotalData.formattedIssuePayload.filter(
-  (issue) => !issue.isRelease,
-);
-await createIssues({
-  team,
-  issuesPayload: nonReleaseIssues,
-  options,
-  importSource,
-  directory,
-});
+  //=============================================================================
+  // Create Issues
+  //=============================================================================
+  // Create non-release issues after release issues have been created, so that
+  // a parentId can be assigned if necessary
+  const nonReleaseIssues = extractedPivotalData.formattedIssuePayload.filter(
+    (issue) => !issue.isRelease,
+  );
+  await createIssues({
+    team,
+    issuesPayload: nonReleaseIssues,
+    options,
+    importSource,
+    directory,
+  });
+} else {
+  //=============================================================================
+  // Create All the Issues
+  //=============================================================================
+  await createIssues({
+    team,
+    // Pivotal exports the stories in the same order we see on screen
+    // To maintain the order, we reverse the array because linear creates the issues in reverse order
+    issuesPayload: extractedPivotalData.formattedIssuePayload.reverse(),
+    options,
+    importSource,
+    directory,
+  });
+}
 
 await detailedLogger.importantSuccess("Import complete!");
