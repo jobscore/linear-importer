@@ -22,6 +22,9 @@ export function buildFormattedIssue(row) {
     requestedBy: row["Requested By"],
     ownedBy,
     estimate: row["Estimate"],
+    zendeskId: "Zendesk ID" in row ? row["Zendesk ID"] : "",
+    intercomId: extractIntercomId(row["Description"]),
+    pullRequests: "Pull Request" in row ? row["Pull Request"] : [],
     comments: [rawPivotalTrackerDataComment, ...(comments || [])],
   };
 
@@ -64,4 +67,14 @@ function buildRawPivotalTrackerDataComment(row) {
 function joinMultipleColumns(columns) {
   if (!Array.isArray(columns)) return "";
   return columns.filter((comment) => comment !== "");
+}
+
+function extractIntercomId(body) {
+  const regex = /From Intercom: https:\/\/(.*?)\n/;
+  const match = body.match(regex);
+
+  if (match) {
+    return match[1].split("/").pop();
+  }
+  return null;
 }
