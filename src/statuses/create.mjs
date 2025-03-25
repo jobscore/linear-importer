@@ -8,11 +8,11 @@ const STARTED_TYPE = "started";
 // const CANCELED = 'canceled';
 // const TRIAGE = 'triage';
 
-const ACCEPTED = "pivotal - accepted";
-const UNSCHEDULED = "pivotal - unscheduled";
-const FINISHED = "pivotal - finished";
-const PLANNED = "pivotal - planned";
-const STARTED = "pivotal - started";
+const ACCEPTED = "Done";
+const UNSCHEDULED = "Backlog";
+const FINISHED = "Done";
+const PLANNED = "Todo";
+const STARTED = "In Progress";
 
 const STATUSES_TO_CREATE = [
   { name: UNSCHEDULED, color: "#6C757D", type: BACKLOG_TYPE },

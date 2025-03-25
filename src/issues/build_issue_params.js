@@ -7,6 +7,14 @@ import extractParentId from "./extract_parent_id.js";
 
 const formatDate = (date) => (date ? new Date(date).toISOString() : undefined);
 
+const ISSUE_MAPPING = {
+  accepted: "Done",
+  unscheduled: "Backlog",
+  finished: "Done",
+  planned: "Todo",
+  started: "In Progress",
+}
+
 async function buildIssueParams({
   team,
   issue,
@@ -18,7 +26,7 @@ async function buildIssueParams({
   releaseIssues,
 }) {
   const stateId = teamStatuses.find(
-    (state) => state.name === `${importSource} - ${issue.state}`,
+    (state) => state.name === ISSUE_MAPPING[issue.state],
   )?.id;
   const labelIds = extractLabelIds(
     issue,
