@@ -5,8 +5,8 @@ function extractLabelIds(issue, teamLabels, shouldImportLabels, importSource) {
   const labelMap = new Map(teamLabels.map((label) => [label.name, label.id]));
 
   // Single lookup for type label
-  const typeColumnLabelName = `${importSource}-${issue.type}`;
-  const typeColumnLabelId = labelMap.get(typeColumnLabelName);
+  const typeColumnLabelName = issue.type;
+  const typeColumnLabelId = labelMap.get(typeColumnLabelName.toUpperCase());
 
   // This should always be present. If it's not, something is wrong and we should halt
   if (!typeColumnLabelId) {

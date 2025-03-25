@@ -12,12 +12,45 @@ async function createComments({ issue, newIssue }) {
 
   // Create comments
   for (const body of issue.comments) {
-    await createComment({
-      issueId: newIssue._issue.id,
-      body,
-    });
+    const userData = parseCommentDetails(body);
+
+    if (!userData) {
+      await createComment({
+        issueId: newIssue._issue.id,
+        body: body,
+      });
+    } else {
+      await createComment({
+        issueId: newIssue._issue.id,
+        body: userData.body,
+        createAsUser: userData.user,
+        createdAt: userData.date
+      });
+    }
 
     await new Promise((resolve) => setTimeout(resolve, REQUEST_DELAY_MS));
+  }
+}
+
+function parseCommentDetails(body) {
+  if (!body || typeof body !== 'string') {
+    return null;
+  }
+
+  const regex = /^([\s\S]*?)\s*\((.+?)\s*-\s*(.+?)\)$/;
+  const match = body.match(regex);
+
+  if (!match) {
+    return;
+  }
+
+  const [, commentBody, user, dateString] = match;
+  const date = new Date(dateString.trim());
+
+  return {
+    body: commentBody,
+    user: user.trim(),
+    date: date.toISOString()
   }
 }
 

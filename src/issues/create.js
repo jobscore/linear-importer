@@ -47,6 +47,15 @@ async function create({
       // Create Issue
       const newIssue = await linearClient.createIssue(issueParams);
 
+      // Create Zendesk Ticket
+      await createZendeskLinks(linearClient, newIssue._issue.id, issue, detailedLogger);
+
+      // Create Pull Request
+      await createGitHubPRLinks(linearClient, newIssue._issue.id, issue, detailedLogger);
+
+      // Create Intercom Link
+      await createIntercomLinks(linearClient, newIssue._issue.id, issue, detailedLogger);
+
       // Create Comments
       if (options.shouldImportComments)
         await createComments({ issue, newIssue });
@@ -68,6 +77,60 @@ async function create({
       detailedLogger.importantError(`Failed to create issue: ${error.message}`);
       process.exit(0);
     }
+  }
+}
+
+async function createZendeskLinks(linearClient, linearIssueId, issue, detailedLogger) {
+  if (!issue.zendeskId) return;
+
+  try {
+    await linearClient.attachmentLinkZendesk(linearIssueId, issue.zendeskId);
+  } catch (error) {
+    detailedLogger.error(
+      `Failed to create Zendesk link: ${error.message}. ` +
+      `Issue: ${linearIssueId} - ${issue.title}. ` +
+      `Zendesk ID: ${issue.zendeskId}`
+    );
+  }
+}
+
+async function createGitHubPRLinks(linearClient, linearIssueId, issue, detailedLogger) {
+  if (!issue.pullRequests) return;
+
+  const normalizedPRs = Array.isArray(issue.pullRequests)
+    ? issue.pullRequests.filter(Boolean)
+    : [issue.pullRequests];
+
+  const prLinks = normalizedPRs.map(pr =>
+    pr.startsWith("https://github.com/") ? pr : `https://github.com/${pr}`
+  );
+
+  try {
+    await Promise.all(
+      prLinks.map(prLink =>
+        linearClient.attachmentLinkGitHubPR(linearIssueId, prLink)
+      )
+    );
+  } catch (error) {
+    detailedLogger.error(
+      `Failed to create Pull Request link: ${error.message}. ` +
+      `Issue: ${linearIssueId} - ${issue.title}. ` +
+      `Pull Requests: ${prLinks.join(', ')}`
+    );
+  }
+}
+
+async function createIntercomLinks(linearClient, linearIssueId, issue, detailedLogger) {
+  if (!issue.intercomId) return;
+
+  try {
+    await linearClient.attachmentLinkIntercom(issue.intercomId, linearIssueId);
+  } catch (error) {
+    detailedLogger.error(
+      `Failed to create Intercom link: ${error.message}. ` +
+      `Issue: ${linearIssueId} - ${issue.title}. ` +
+      `Intercom ID: ${issue.intercomId}`
+    );
   }
 }
 
